@@ -3,29 +3,27 @@
 
 #include "targets/basic_ast_visitor.h"
 
-#include <sstream>
 #include <cdk/emitters/basic_postfix_emitter.h>
+#include <sstream>
 
 namespace mml {
 
   //!
   //! Traverse syntax tree and generate the corresponding assembly code.
   //!
-  class postfix_writer: public basic_ast_visitor {
+  class postfix_writer : public basic_ast_visitor {
     cdk::symbol_table<mml::symbol> &_symtab;
     cdk::basic_postfix_emitter &_pf;
     int _lbl;
 
   public:
-    postfix_writer(std::shared_ptr<cdk::compiler> compiler, cdk::symbol_table<mml::symbol> &symtab,
-                   cdk::basic_postfix_emitter &pf) :
-        basic_ast_visitor(compiler), _symtab(symtab), _pf(pf), _lbl(0) {
-    }
+    postfix_writer(std::shared_ptr<cdk::compiler> compiler,
+                   cdk::symbol_table<mml::symbol> &symtab,
+                   cdk::basic_postfix_emitter &pf)
+        : basic_ast_visitor(compiler), _symtab(symtab), _pf(pf), _lbl(0) {}
 
   public:
-    ~postfix_writer() {
-      os().flush();
-    }
+    ~postfix_writer() { os().flush(); }
 
   private:
     /** Method used to generate sequential labels. */
@@ -39,14 +37,13 @@ namespace mml {
     }
 
   public:
-  // do not edit these lines
+    // do not edit these lines
 #define __IN_VISITOR_HEADER__
-#include ".auto/visitor_decls.h"       // automatically generated
+#include ".auto/visitor_decls.h" // automatically generated
 #undef __IN_VISITOR_HEADER__
-  // do not edit these lines: end
-
+    // do not edit these lines: end
   };
 
-} // mml
+} // namespace mml
 
 #endif

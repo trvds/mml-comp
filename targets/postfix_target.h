@@ -1,21 +1,19 @@
 #ifndef __MML_TARGETS_POSTFIX_TARGET_H__
 #define __MML_TARGETS_POSTFIX_TARGET_H__
 
-#include <cdk/targets/basic_target.h>
-#include <cdk/ast/basic_node.h>
 #include "targets/postfix_writer.h"
+#include <cdk/ast/basic_node.h>
+#include <cdk/targets/basic_target.h>
 
 #include <cdk/emitters/postfix_ix86_emitter.h>
 
 namespace mml {
 
-  class postfix_target: public cdk::basic_target {
+  class postfix_target : public cdk::basic_target {
     static postfix_target _self;
 
   private:
-    postfix_target() :
-        cdk::basic_target("asm") {
-    }
+    postfix_target() : cdk::basic_target("asm") {}
 
   public:
     bool evaluate(std::shared_ptr<cdk::compiler> compiler) {
@@ -32,9 +30,8 @@ namespace mml {
 
       return true;
     }
-
   };
 
-} // mml
+} // namespace mml
 
 #endif

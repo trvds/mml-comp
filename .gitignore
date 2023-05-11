@@ -31,3 +31,5 @@
 *.tab.c
 *.tab.h
 
+# Vscode folder with settings
+/.vscode

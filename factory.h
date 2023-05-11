@@ -1,16 +1,16 @@
 #ifndef __MML_FACTORY_H__
 #define __MML_FACTORY_H__
 
-#include <memory>
-#include <cdk/yy_factory.h>
 #include "mml_scanner.h"
+#include <cdk/yy_factory.h>
+#include <memory>
 
 namespace mml {
 
   /**
    * This class implements the compiler factory for the MML compiler.
    */
-  class factory: public cdk::yy_factory<mml_scanner> {
+  class factory : public cdk::yy_factory<mml_scanner> {
     /**
      * This object is automatically registered by the constructor in the
      * superclass' language registry.
@@ -19,14 +19,13 @@ namespace mml {
 
   protected:
     /**
-     * @param language name of the language handled by this factory (see .cpp file)
+     * @param language name of the language handled by this factory (see .cpp
+     * file)
      */
-    factory(const std::string &language = "mml") :
-        cdk::yy_factory<mml_scanner>(language) {
-    }
-
+    factory(const std::string &language = "mml")
+        : cdk::yy_factory<mml_scanner>(language) {}
   };
 
-} // mml
+} // namespace mml
 
 #endif

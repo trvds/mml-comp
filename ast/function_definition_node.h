@@ -9,6 +9,7 @@ namespace mml {
     cdk::sequence_node *_arguments;
     mml::block_node *_block;
     std::shared_ptr<cdk::basic_type> _outputType;
+    bool _isMain = false;
 
   public:
     function_definition_node(int lineno, cdk::sequence_node *arguments,
@@ -30,6 +31,7 @@ namespace mml {
     }
     mml::block_node *block() { return _block; }
     std::shared_ptr<cdk::basic_type> outputType() { return _outputType; }
+    bool isMain() { return _isMain; }
 
     void accept(basic_ast_visitor *sp, int level) {
       sp->do_function_definition_node(this, level);

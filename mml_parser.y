@@ -45,8 +45,8 @@
 %left '*' '/' '%'
 %nonassoc tUNARY
 
-%type <node> stmt program
-%type <sequence> list
+/* %type <node> stmt program */
+/* %type <sequence> list */
 %type <expression> expr
 %type <lvalue> lval
 
@@ -55,9 +55,10 @@
 %}
 %%
 
-program	: tBEGIN list tEND { compiler->ast(new mml::program_node(LINE, $2)); }
-	      ;
+/* program	: tBEGIN list tEND { compiler->ast(new mml::program_node(LINE, $2)); }
+	      ; */
 
+/*
 list : stmt	     { $$ = new cdk::sequence_node(LINE, $1); }
 	   | list stmt { $$ = new cdk::sequence_node(LINE, $2, $1); }
 	   ;
@@ -69,7 +70,8 @@ stmt : expr ';'                         { $$ = new mml::evaluation_node(LINE, $1
      | tIF '(' expr ')' stmt %prec tIFX { $$ = new mml::if_node(LINE, $3, $5); }
      | tIF '(' expr ')' stmt tELSE stmt { $$ = new mml::if_else_node(LINE, $3, $5, $7); }
      | '{' list '}'                     { $$ = $2; }
-     ;
+     ; 
+*/
 
 expr : tINTEGER                { $$ = new cdk::integer_node(LINE, $1); }
 	   | tSTRING                 { $$ = new cdk::string_node(LINE, $1); }

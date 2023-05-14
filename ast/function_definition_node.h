@@ -16,8 +16,7 @@ namespace mml {
     function_definition_node(int lineno, mml::block_node *block)
         : cdk::typed_node(lineno), _block(block),
           _outputType(cdk::primitive_type::create(0, cdk::TYPE_INT)) {
-      // set type to int
-      type(cdk::primitive_type::create(0, cdk::TYPE_INT));
+      type(cdk::functional_type::create(_outputType));
     }
 
     function_definition_node(int lineno,
@@ -26,14 +25,10 @@ namespace mml {
                              mml::block_node *block)
         : cdk::typed_node(lineno), _arguments(arguments), _block(block),
           _outputType(outputType) {
-      // Iterate over the arguments variable and create a
-      // std::vector<std::shared_ptr<basic_type>> variable with the types of the
-      // arguments
       std::vector<std::shared_ptr<cdk::basic_type>> types;
       for (size_t ax = 0; ax < _arguments->size(); ax++) {
         types.push_back(argument(ax)->type());
       }
-      // set type to functional type
       type(cdk::functional_type::create(types, outputType));
     }
 

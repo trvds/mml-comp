@@ -17,6 +17,7 @@ namespace mml {
         : cdk::typed_node(lineno), _block(block),
           _outputType(cdk::primitive_type::create(0, cdk::TYPE_INT)) {
       type(cdk::functional_type::create(_outputType));
+      _isMain = true;
     }
 
     function_definition_node(int lineno,
@@ -40,7 +41,6 @@ namespace mml {
     mml::block_node *block() { return _block; }
     std::shared_ptr<cdk::basic_type> outputType() { return _outputType; }
     bool isMain() { return _isMain; }
-    void setMain() { _isMain = true; }
 
     void accept(basic_ast_visitor *sp, int level) {
       sp->do_function_definition_node(this, level);

@@ -6,12 +6,12 @@
 static std::string qualifier_name(int qualifier) {
   if (qualifier == tPUBLIC)
     return "public";
-  if (qualifier == tPRIVATE)
-    return "private";
-  if (qualifier == tUSE)
-    return "use";
   if (qualifier == tFOREIGN)
     return "foreign";
+  if (qualifier == tFORWARD)
+    return "forward";
+  if (qualifier == tAUTO)
+    return "auto";
   else
     return "unknown qualifier";
 }

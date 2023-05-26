@@ -109,7 +109,12 @@ EXP [eE]-?[:digit:]+
 
 "sizeof"               return tSIZEOF;
 "input"                return tINPUT;
-"null"                 return tNULLPTR;
+
+  /* ====================================================================== */
+  /* ====[                 3.7 - Identificadores                     ]==== */
+  /* ====================================================================== */
+
+[:alpha:][:alnum:]*           yylval.s = new std::string(yytext); return tIDENTIFIER;
 
   /* ====================================================================== */
   /* ====[                 3.8.1 - Inteiros                           ]==== */
@@ -146,8 +151,6 @@ EXP [eE]-?[:digit:]+
   /* ====================================================================== */
   /* ====[                 3.8.1 - Strings                            ]==== */
   /* ====================================================================== */
-
-[:alpha:][:alnum:]*           yylval.s = new std::string(yytext); return tIDENTIFIER;
 
 "\""                          yy_push_state(X_STRING);
 <X_STRING>\\                  yy_push_state(X_BACKSLASH);

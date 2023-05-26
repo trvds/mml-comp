@@ -73,90 +73,178 @@
 %}
 %%
 
-file           : /* empty */                {  }
-               | globaldecls                {  }
-               |             mainfundef     {  }
-               | globaldecls mainfundef     {  }
-               ;
+file                : /* empty */            {  }
+                    | globaldecls            {  }
+                    | mainfundef             {  }
+                    | globaldecls mainfundef {  }
+                    ;
   
-global_decls   : global_decls {  }
-               | global_decls global_decl {  }
-               ;
-
-global_decl    : tPUBLIC  type tIDENTIFIER opt_expr        {  }   
-               | tFORWARD type tIDENTIFIER ';'             {  }
-               | tFOREIGN type tIDENTIFIER ';'             {  }
-               | tPUBLIC       tIDENTIFIER expr_assignment {  } 
-               | declaration                               {  }
-               ; 
-
-declarations   :               declaration  {  }
-               |  declarations declaration  {  }
-               ;
-
-declaration    : type tIDENTIFIER opt_expr            {  }
-               | tAUTO tIDENTIFIER expr_assignment    {  }
-               ;
-
-opt_expr       : expr_assignment { $$ = $1; }
-               | ';'             { $$ = nullptr; }
-               ;
-
-expr_assignment     : '=' simple_expr ';'   { $$ = $2; }
-                    | '=' block_expr        { $$ = $2; }
+global_decls        : global_decls                {  }
+                    | global_decls global_decl    {  }
                     ;
 
-mainfundef     : tBEGIN innerblock tEND     {  }
-	          ;
+global_decl         : tPUBLIC  type tIDENTIFIER opt_expr         {  }   
+                    | tFORWARD type tIDENTIFIER ';'              {  }
+                    | tFOREIGN type tIDENTIFIER ';'              {  }
+                    | tPUBLIC       tIDENTIFIER expr_assignment  {  } 
+                    | declaration                                {  }
+                    ; 
 
-fundef         : '(' opt_vars ')' tIOTYPES return_type block     {  }
-               ;
+declarations        :  declaration                {  }
+                    |  declaration declarations   {  }
+                    ;
 
-opt_vars       :  /* empty */                    { $$ = new cdk::sequence_node(LINE); }
-               |  vars                           { $$ = $1; }
-               ;
+declaration         : type tIDENTIFIER opt_expr_assig       {  }
+                    | tAUTO tIDENTIFIER expr_assignment     {  }
+                    ;
 
-vars           : vars ',' tIDENTIFIER {  }
-               | tIDENTIFIER          {  }
-               ;
+opt_expr_assig      : expr_assignment   {  }
+                    | ';'               {  }
+                    ;
 
-var            : type tIDENTIFIER                {  }
-               ;
+expr_assignment     : '=' expression ';'     {  }
+                    ;
 
-type      :    tINT_TYPE                     {  }
-          |    tREAL_TYPE                    {  }
-          |    tSTRING_TYPE                  {  }
-          |    tVOID_TYPE                    {  } 
-          |    '[' type ']'                  {  }
-          |    function_type                 {  }
-          ;
+mainfundef          : tBEGIN innerblock tEND {  }
+	               ;
 
-function_type  : tVOID_TYPE '<' '>'          {  }
-               | tVOID_TYPE '<' types '>'    {  }
-               | type '<' '>'                {  }
-               | type '<' types '>'          {  }
-               ;
+fundef              : '(' opt_vars ')' tIOTYPES return_type block     {  }
+                    ;
 
-types          : type                        {  }
-               | types ',' type              {  }
-               ;
+opt_vars            :  /* empty */ {  }
+                    |  vars        {  }
+                    ;
 
-block           : '{' innerblock'}' { $$ = $2; };
+vars                : vars ',' tIDENTIFIER {  }
+                    | tIDENTIFIER          {  }
+                    ;
 
-innerblock     : instructions               {  }
-               | declarations               {  }
-               | declarations instructions  {  }
-               | ';'                        {  };
+var                 : type tIDENTIFIER  {  }
+                    ;
 
-// TODO instruction
+type                : tINT_TYPE         {  }
+                    | tREAL_TYPE        {  }
+                    | tSTRING_TYPE      {  }
+                    | tVOID_TYPE        {  } 
+                    | '[' type ']'      {  }
+                    | function_type     {  }
+                    ;
 
-// TODO conditional instruction
+function_type       : tVOID_TYPE '<' '>'          {  }
+                    | tVOID_TYPE '<' types '>'    {  }
+                    | type '<' '>'                {  }
+                    | type '<' types '>'          {  }
+                    ;
 
-// TODO iteration instruction
+types               : type              {  }
+                    | types ',' type    {  }
+                    ;
 
-// TODO expressions
+block               : '{' innerblock'}' {  }
+                    ;
 
-expression : expression {  }
-               | expression; expressions {  }
-               ;
+innerblock          : instructions                {  }
+                    | declarations                {  }
+                    | declarations instructions   {  }
+                    | ';'                         {  };
+
+instructions        : instruction                     {  }
+                    | instruction ';' instructions    {  }
+                    ;
+
+instruction         :  expression ';'        {  }
+                    |  expressions tPRINT    {  }
+                    |  expressions tPRINTLN  {  }  
+                    |  tAGAIN opt_int ';'    {  }       
+                    |  tSTOP opt_int ';'     {  }
+                    |  tRETURN opt_expr      {  }
+                    |  if_instr              {  }
+                    |  while_instr           {  }
+                    |  block                 {  }   
+                    ;
+
+if_instr            : tIF '(' expression ')' instruction opt_elif then_instr    {  }
+                    ;
+
+elif_instr          : tELIF '(' expression ')' instruction {  }
+                    ;
+
+opt_elif            : /* empty */                          {  }
+                    | elif_instr                           {  }
+                    | opt_elif_instr elif_instr            {  }
+                    ;
+
+then_instr          : /* empty */       {  }
+                    | tTHEN instruction {  }
+                    ;
+
+while_instr         : tWHILE '(' expression ')' tDO instruction {  }
+               
+expr                : integer                     {  }
+                    | real                        {  }
+	               | string                      {  }
+                    | tNULLPTR                    {  }
+                    | '(' expr ')'                {  }
+                    | '[' expr ']'                {  }
+                    | lval '?'                    {  }  
+                    | lval                        {  }  
+                    | expr  '(' opt_exprs ')'     {  }
+                    | '@' '(' opt_exprs ')'       {  }
+                    | tSIZEOF '(' expr ')'        {  }
+                    | tINPUT                      {  }
+                    | '+' expr %prec tUNARY       {  }
+                    | '-' expr %prec tUNARY       {  }
+                    | expr '+' expr               {  }
+                    | expr '-' expr               {  }
+                    | expr '*' expr               {  }
+                    | expr '/' expr               {  }  
+                    | expr '%' expr               {  }
+                    | expr '<' expr               {  }
+                    | expr '>' expr               {  }
+                    | expr tGE expr               {  }
+                    | expr tLE expr               {  }
+                    | expr tNE expr               {  }
+                    | expr tEQ expr               {  }
+                    | expr '*' expr               {  }
+                    | expr '/' expr               {  }
+                    | expr '%' expr               {  }
+                    | expr '<' expr               {  }
+                    | expr '>' expr               {  }
+                    | expr tGE expr               {  }
+                    | expr tLE expr               {  }
+                    | expr tNE expr               {  }
+                    | expr tEQ expr               {  }
+                    | tNOT expr                   {  }
+                    | expr tAND expr              {  }
+                    | expr tOR expr               {  }
+                    | expr tAND expr              {  }
+                    | expr tOR expr               {  }
+                    | lval '=' expr               {  }
+                    ;
+
+exprs               : expr         {  }
+                    | expr , exprs {  }
+                    ;
+
+return_type         :  type        {  }
+                    |  tVOID_TYPE  {  }
+                    ;
+              
+integer             : tINTEGER     {  }
+                    ;
+
+opt_int             : /* empty */  {  }
+                    | integer {  }
+                    ;
+
+real                : tREAL   {  }
+                    ;
+
+string              : tSTRING           {  }
+                    | string tSTRING    {  }
+                    ;
+
+lval                :  tIDENTIFIER                     {  }
+                    |  expression  '[' expression ']'  {  }    
+                    ;
 %%

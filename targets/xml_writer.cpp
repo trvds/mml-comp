@@ -3,6 +3,8 @@
 #include "targets/type_checker.h"
 #include <string>
 
+#include "mml_parser.tab.h"
+
 static std::string qualifier_name(int qualifier) {
   if (qualifier == tPUBLIC)
     return "public";
@@ -43,9 +45,8 @@ void mml::xml_writer::do_block_node(mml::block_node *const node, int lvl) {
 void mml::xml_writer::do_function_definition_node(
     mml::function_definition_node *const node, int lvl) {
 
-  os() << std::string(lvl, ' ') << "<" << node->label() << " returnType='"
-       << node->type()->returnType()->name() << "; isMain= " << node->isMain()
-       << "'>" << std::endl;
+  os() << std::string(lvl, ' ') << "<" << node->label()
+       << "; isMain= " << node->isMain() << "'>" << std::endl;
   openTag("arguments", lvl + 2);
   if (node->arguments()) {
     node->arguments()->accept(this, lvl + 4);

@@ -31,8 +31,8 @@
   cdk::sequence_node   *sequence;
   cdk::expression_node *expression; /* expression nodes */
   cdk::lvalue_node     *lvalue;
-  l22::variable_declaration_node *var_decl;
-  l22::block_node      *block;
+  mml::variable_declaration_node *var_decl;
+  mml::block_node      *block;
   std::shared_ptr<cdk::basic_type> vartype;
   std::vector<std::shared_ptr<cdk::basic_type>> *types;
 };
@@ -73,17 +73,17 @@
 %}
 %%
 
-file                : /* empty */            {  }
-                    | globaldecls            {  }
-                    | mainfundef             {  }
-                    | globaldecls mainfundef {  }
+file                : /* empty */             {  }
+                    | global_decls            {  }
+                    | mainfundef              {  }
+                    | global_decls mainfundef {  }
                     ;
   
 global_decls        : global_decls                {  }
                     | global_decls global_decl    {  }
                     ;
 
-global_decl         : tPUBLIC  type tIDENTIFIER opt_expr         {  }   
+global_decl         : tPUBLIC  type tIDENTIFIER opt_expr_assig   {  }   
                     | tFORWARD type tIDENTIFIER ';'              {  }
                     | tFOREIGN type tIDENTIFIER ';'              {  }
                     | tPUBLIC       tIDENTIFIER expr_assignment  {  } 
@@ -102,7 +102,7 @@ opt_expr_assig      : expr_assignment   {  }
                     | ';'               {  }
                     ;
 
-expr_assignment     : '=' expression ';'     {  }
+expr_assignment     : '=' expr ';'     {  }
                     ;
 
 mainfundef          : tBEGIN innerblock tEND {  }
@@ -123,7 +123,7 @@ var                 : type tIDENTIFIER  {  }
                     ;
 
 type                : tINT_TYPE         {  }
-                    | tREAL_TYPE        {  }
+                    | tDOUBLE_TYPE      {  }
                     | tSTRING_TYPE      {  }
                     | tVOID_TYPE        {  } 
                     | '[' type ']'      {  }
@@ -152,24 +152,24 @@ instructions        : instruction                     {  }
                     | instruction ';' instructions    {  }
                     ;
 
-instruction         :  expression ';'        {  }
-                    |  expressions tPRINT    {  }
-                    |  expressions tPRINTLN  {  }  
-                    |  tAGAIN opt_int ';'    {  }       
-                    |  tSTOP opt_int ';'     {  }
-                    |  tRETURN opt_expr      {  }
-                    |  if_instr              {  }
-                    |  while_instr           {  }
-                    |  block                 {  }   
+instruction         :  expr ';'               {  }
+                    |  exprs tPRINT           {  }
+                    |  expr tPRINTLN          {  }  
+                    |  tNEXT opt_int ';'     {  }       
+                    |  tSTOP opt_int ';'      {  }
+                    |  tRETURN opt_expr_assig {  }
+                    |  if_instr               {  }
+                    |  while_instr            {  }
+                    |  block                  {  }   
                     ;
 
-if_instr            : tIF '(' expression ')' instruction opt_elif then_instr    {  }
+if_instr            : tIF '(' expr ')' instruction opt_elif_instr then_instr  {  }
                     ;
 
-elif_instr          : tELIF '(' expression ')' instruction {  }
+elif_instr          : tELIF '(' expr ')' instruction  {  }
                     ;
 
-opt_elif            : /* empty */                          {  }
+opt_elif_instr      : /* empty */                          {  }
                     | elif_instr                           {  }
                     | opt_elif_instr elif_instr            {  }
                     ;
@@ -178,7 +178,7 @@ then_instr          : /* empty */       {  }
                     | tTHEN instruction {  }
                     ;
 
-while_instr         : tWHILE '(' expression ')' tDO instruction {  }
+while_instr         : tWHILE '(' expr ')' tDO instruction {  }
                
 expr                : integer                     {  }
                     | real                        {  }
@@ -222,8 +222,12 @@ expr                : integer                     {  }
                     | lval '=' expr               {  }
                     ;
 
-exprs               : expr         {  }
-                    | expr , exprs {  }
+opt_exprs      :  /* empty */ {  }
+               |  exprs       {  }
+               ;
+
+exprs               : expr           {  }
+                    | expr ',' exprs {  }
                     ;
 
 return_type         :  type        {  }
@@ -237,14 +241,14 @@ opt_int             : /* empty */  {  }
                     | integer {  }
                     ;
 
-real                : tREAL   {  }
+real                : tDOUBLE   {  }
                     ;
 
 string              : tSTRING           {  }
                     | string tSTRING    {  }
                     ;
 
-lval                :  tIDENTIFIER                     {  }
-                    |  expression  '[' expression ']'  {  }    
+lval                :  tIDENTIFIER        {  }
+                    |  expr  '[' expr ']' {  }    
                     ;
 %%

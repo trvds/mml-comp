@@ -12,6 +12,8 @@
 
 // don't change this
 #define yyerror LexerError
+
+static std::ostringstream strliteral;
 %}
 
 EXP [eE]-?[:digit:]+
@@ -144,9 +146,9 @@ EXP [eE]-?[:digit:]+
   /* ====[                 3.8.2 - Reais                              ]==== */
   /* ====================================================================== */
 
-[:digit:]*\.[:digit:]+{EXP}?    { yylval.d = std::stod(yytext); return tREAL; }
-[:digit:]+\.[:digit:]*{EXP}?    { yylval.d = std::stod(yytext); return tREAL; }
-[:digit:]+{EXP}                 { yylval.d = std::stod(yytext); return tREAL; }
+[:digit:]*\.[:digit:]+{EXP}?    { yylval.d = std::stod(yytext); return tDOUBLE; }
+[:digit:]+\.[:digit:]*{EXP}?    { yylval.d = std::stod(yytext); return tDOUBLE; }
+[:digit:]+{EXP}                 { yylval.d = std::stod(yytext); return tDOUBLE; }
 
   /* ====================================================================== */
   /* ====[                 3.8.1 - Strings                            ]==== */
@@ -155,31 +157,31 @@ EXP [eE]-?[:digit:]+
 "\""                          yy_push_state(X_STRING);
 <X_STRING>\\                  yy_push_state(X_BACKSLASH);
 <X_STRING>"\""                {
-                                yylval.s = new std::string(strlit.str());
-                                strlit.str("");
+                                yylval.s = new std::string(strliteral.str());
+                                strliteral.str("");
                                 yy_pop_state();
                                 return tSTRING;
                               }
 
 <X_STRING>\0                  yyerror("NULL character in string");               
 <X_STRING>\n                  yyerror("Newline in string");          
-<X_STRING>.                   strlit << *yytext;
+<X_STRING>.                   strliteral << *yytext;
                               
-<X_BACKSLASH>t                 strlit << '\t'; yy_pop_state();
-<X_BACKSLASH>n                 strlit << '\n'; yy_pop_state();
-<X_BACKSLASH>r                 strlit << '\r'; yy_pop_state();
-<X_BACKSLASH>\"                strlit << '\"'; yy_pop_state();
-<X_BACKSLASH>\\                strlit << '\\'; yy_pop_state();
+<X_BACKSLASH>t                 strliteral << '\t'; yy_pop_state();
+<X_BACKSLASH>n                 strliteral << '\n'; yy_pop_state();
+<X_BACKSLASH>r                 strliteral << '\r'; yy_pop_state();
+<X_BACKSLASH>\"                strliteral << '\"'; yy_pop_state();
+<X_BACKSLASH>\\                strliteral << '\\'; yy_pop_state();
 
 <X_BACKSLASH>[0-7]{1,3}        {
                                  unsigned long res = std::stoul(yytext, NULL, 8);
                                  if (res > 255) {
                                   yyerror("Invalid 8 bit number.");
                                  }
-                                 strlit << (char)(unsigned char)res;
+                                 strliteral << (char)(unsigned char)res;
                                  yy_pop_state();
                                }
-<X_BACKSLASH>.                 strlit << *yytext; yy_pop_state();
+<X_BACKSLASH>.                 strliteral << *yytext; yy_pop_state();
 
 
 [-()<>=+*/%;{}.]       return *yytext;

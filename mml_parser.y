@@ -168,20 +168,20 @@ innerblock          : instructions                { $$ = new mml::block_node(LIN
                     ;
 
 instructions        : instruction                     { $$ = new cdk::sequence_node(LINE, $1); }
-                    | instruction ';' instructions    { std::reverse($3->nodes().begin(), $3->nodes().end()); $$ = new cdk::sequence_node(LINE, $1, $3); std::reverse($$->nodes().begin(), $$->nodes().end()); }
+                    | instruction instructions        { std::reverse($2->nodes().begin(), $2->nodes().end()); $$ = new cdk::sequence_node(LINE, $1, $2); std::reverse($$->nodes().begin(), $$->nodes().end()); }
                     ;
 
-instruction         :  expr                   { $$ = new mml::evaluation_node(LINE, $1); }
-                    |  exprs tPRINT           { $$ = new mml::print_node(LINE, $1); }
-                    |  exprs tPRINTLN         { $$ = new mml::print_node(LINE, $1, true); }  
-                    |  tNEXT                  { $$ = new mml::next_node(LINE); }
-                    |  tNEXT tINTEGER         { $$ = new mml::next_node(LINE, $2); }
-                    |  tSTOP                  { $$ = new mml::stop_node(LINE); }
-                    |  tSTOP tINTEGER         { $$ = new mml::stop_node(LINE, $2); }
-                    |  tRETURN opt_expr_assig { $$ = new mml::return_node(LINE, $2); }
-                    |  if_instr               { $$ = $1; }
-                    |  while_instr            { $$ = $1; }
-                    |  block                  { $$ = $1; }   
+instruction         :  expr ';'                       { $$ = new mml::evaluation_node(LINE, $1); }
+                    |  exprs tPRINT                   { $$ = new mml::print_node(LINE, $1); }
+                    |  exprs tPRINTLN                 { $$ = new mml::print_node(LINE, $1, true); }  
+                    |  tNEXT ';'                      { $$ = new mml::next_node(LINE); }
+                    |  tNEXT tINTEGER ';'             { $$ = new mml::next_node(LINE, $2); }
+                    |  tSTOP ';'                      { $$ = new mml::stop_node(LINE); }
+                    |  tSTOP tINTEGER ';'             { $$ = new mml::stop_node(LINE, $2); }
+                    |  tRETURN opt_expr_assig ';'     { $$ = new mml::return_node(LINE, $2); }
+                    |  if_instr                       { $$ = $1; }
+                    |  while_instr                    { $$ = $1; }
+                    |  block                          { $$ = $1; }   
                     ;
 
 if_instr            : tIF '(' expr ')' instruction { $$ = new mml::if_node(LINE, $3, $5); }

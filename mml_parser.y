@@ -91,12 +91,12 @@ file                : /* empty */             { compiler->ast($$ = new cdk::sequ
                     | global_decls mainfundef { compiler->ast($$ = new cdk::sequence_node(LINE, $2, $1)); }
                     ;
   
-global_decls        : global_decls                { $$ = new cdk::sequence_node(LINE, $1); }
+global_decls        : global_decl                { $$ = new cdk::sequence_node(LINE, $1); }
                     | global_decls global_decl    { $$ = new cdk::sequence_node(LINE, $2, $1); }
                     ;
 
 global_decl         : tPUBLIC  type tIDENTIFIER opt_expr_assig   { $$ = new mml::variable_declaration_node(LINE, tPUBLIC, $2, *$3, $4); delete $3; }   
-                    | tFORWARD type tIDENTIFIER ';'              { $$ = new mml::variable_declaration_node(LINE, tUSE, $2, *$3, nullptr); delete $3; }
+                    | tFORWARD type tIDENTIFIER ';'              { $$ = new mml::variable_declaration_node(LINE, tFORWARD, $2, *$3, nullptr); delete $3; }
                     | tFOREIGN type tIDENTIFIER ';'              { $$ = new mml::variable_declaration_node(LINE, tFOREIGN, $2, *$3, nullptr); delete $3; }
                     | tPUBLIC       tIDENTIFIER expr_assignment  { $$ = new mml::variable_declaration_node(LINE, tPUBLIC, nullptr, *$2, $3); delete $2; } 
                     | declaration                                { $$ = $1; }

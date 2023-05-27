@@ -56,7 +56,7 @@
 %type <node> instruction if_instr elif_instr while_instr
 %type <decl> declaration var global_decl
 %type <sequence> file declarations instructions opt_exprs exprs opt_vars vars global_decls
-%type <expression> expr integer real opt_expr_assig expr_assignment opt_int
+%type <expression> expr integer real opt_expr_assig expr_assignment
 %type <lvalue> lval 
 %type <block> block innerblock
 %type <vartype> type function_type return_type
@@ -175,9 +175,9 @@ instruction         :  expr                   { $$ = new mml::evaluation_node(LI
                     |  exprs tPRINT           { $$ = new mml::print_node(LINE, $1); }
                     |  exprs tPRINTLN         { $$ = new mml::print_node(LINE, $1, true); }  
                     |  tNEXT                  { $$ = new mml::next_node(LINE); }
-                    // TODO: next node with level    
+                    |  tNEXT '(' tINTEGER ')' { $$ = new mml::next_node(LINE, $3); }
                     |  tSTOP                  { $$ = new mml::stop_node(LINE); }
-                    // TODO: stop node with level
+                    |  tSTOP '(' tINTEGER ')' { $$ = new mml::stop_node(LINE); }
                     |  tRETURN opt_expr_assig { $$ = new mml::return_node(LINE, $2); }
                     |  if_instr               { $$ = $1; }
                     |  while_instr            { $$ = $1; }
@@ -249,10 +249,6 @@ return_type         :  type        { $$ = $1; }
                     ;
               
 integer             : tINTEGER     { $$ = new cdk::integer_node(LINE, $1); }
-                    ;
-
-opt_int             : /* empty */  { $$ = nullptr; }
-                    | integer { $$ = $1; }
                     ;
 
 real                : tDOUBLE   { $$ = new cdk::double_node(LINE, $1); }

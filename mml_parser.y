@@ -44,7 +44,7 @@
 
 %token tIOTYPES tBEGIN tEND
 
-%token tIF tELSE tELIF tTHEN
+%token tIF tELSE tELIF
 %token tWHILE tSTOP tNEXT tRETURN tPRINT tPRINTLN
 
 %token tSIZEOF tINPUT
@@ -64,8 +64,8 @@
 %type <fndef> fundef mainfundef
 %type <s> string
 
+%nonassoc tIFX
 %nonassoc tIF tWHILE
-%nonassoc tTHEN
 %nonassoc tELIF tELSE
 
 %right '='
@@ -148,9 +148,7 @@ type                : tINT_TYPE         { $$ = cdk::primitive_type::create(4, cd
                     | function_type     { $$ = $1; }
                     ;
 
-function_type       : tVOID_TYPE '<' '>'          { $$ = cdk::functional_type::create(cdk::primitive_type::create(4, cdk::TYPE_VOID)); }
-                    | tVOID_TYPE '<' types '>'    { $$ = cdk::functional_type::create(*$3, cdk::primitive_type::create(4, cdk::TYPE_VOID)); delete $3; }
-                    | type '<' '>'                { $$ = cdk::functional_type::create($1); }
+function_type       : type '<' '>'                { $$ = cdk::functional_type::create($1); }
                     | type '<' types '>'          { $$ = cdk::functional_type::create(*$3, $1); delete $3; }
                     ;
 
@@ -184,15 +182,17 @@ instruction         :  expr ';'                       { $$ = new mml::evaluation
                     |  block                          { $$ = $1; }   
                     ;
 
-if_instr            : tIF '(' expr ')' instruction { $$ = new mml::if_node(LINE, $3, $5); }
+if_instr            : tIF '(' expr ')' instruction %prec tIFX { $$ = new mml::if_node(LINE, $3, $5); }
                     | tIF '(' expr ')' instruction elif_instr { $$ = new mml::if_else_node(LINE, $3, $5, $6); }
                     ;
 
-elif_instr          : tELSE instruction                               { $$ = $2; }
-                    | tELIF '(' expr ')' tTHEN instruction            { $$ = new mml::if_node(LINE, $3, $6); }
-                    | tELIF '(' expr ')' tTHEN instruction elif_instr { $$ = new mml::if_else_node(LINE, $3, $6, $7); }
+elif_instr          : tELSE instruction                         { $$ = $2; }
+                    | tELIF '(' expr ')' instruction %prec tIFX { $$ = new mml::if_node(LINE, $3, $5); }
+                    | tELIF '(' expr ')' instruction elif_instr { $$ = new mml::if_else_node(LINE, $3, $5, $6); }
+                    ;
 
 while_instr         : tWHILE '(' expr ')' instruction { $$ = new mml::while_node(LINE, $3, $5); }
+                    ;
                
 expr                : integer                     { $$ = $1; }
                     | real                        { $$ = $1; }

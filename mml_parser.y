@@ -234,6 +234,7 @@ expr                : integer                     { $$ = $1; }
                     | expr tAND expr              { $$ = new cdk::and_node(LINE, $1, $3); }
                     | expr tOR expr               { $$ = new cdk::or_node (LINE, $1, $3); }
                     | lval '=' expr               { $$ = new cdk::assignment_node(LINE, $1, $3); }
+                    | fundef                      { $$ = $1; }
                     ;
 
 opt_exprs           :  /* empty */ { $$ = new cdk::sequence_node(LINE); }

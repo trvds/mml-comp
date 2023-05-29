@@ -18,7 +18,7 @@ static std::ostringstream strliteral;
 
 EXP [eE]-?[0-9]+
 
-%x X_STRING X_COMMENT X_BACKSLASH
+%x X_STRING X_COMMENT X_BACKSLASH X_STRING_IGNORE
 
 %%
   yydebug=1; set_debug(1);
@@ -173,6 +173,8 @@ EXP [eE]-?[0-9]+
 <X_BACKSLASH>\"                strliteral << '\"'; yy_pop_state();
 <X_BACKSLASH>\\                strliteral << '\\'; yy_pop_state();
 
+<X_BACKSLASH>0                yy_push_state(X_STRING_IGNORE);
+
 <X_BACKSLASH>[0-7]{1,3}        {
                                  unsigned long res = std::stoi(yytext, NULL, 8);
                                  if (res > 255) {
@@ -183,6 +185,15 @@ EXP [eE]-?[0-9]+
                                }
 <X_BACKSLASH>.                 strliteral << *yytext; yy_pop_state();
 
+<X_STRING_IGNORE>\"           {
+                                yylval.s = new std::string(strliteral.str());
+                                strliteral.str("");
+                                yy_pop_state(); yy_pop_state(); yy_pop_state();
+                                return tSTRING;
+                              }
+<X_STRING_IGNORE>.|\\\"|\\\\       ;
+<X_STRING_IGNORE>\n           yyerror("newline in string");
+<X_STRING_IGNORE>\0           yyerror("NULL character in string");
 
 [-()<>=+*/%;{}.]       return *yytext;
 

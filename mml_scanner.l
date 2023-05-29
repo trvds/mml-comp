@@ -16,7 +16,7 @@
 static std::ostringstream strliteral;
 %}
 
-EXP [eE]-?[:digit:]+
+EXP [eE]-?[0-9]+
 
 %x X_STRING X_COMMENT X_BACKSLASH
 
@@ -124,18 +124,18 @@ EXP [eE]-?[:digit:]+
 
 0[0-7]+              {
   try { 
-    yylval.i = std::stoul(yytext, NULL, 8);
+    yylval.i = std::stoi(yytext, NULL, 8);
     return tINTEGER;
   } catch (const std::out_of_range&) {
     yyerror("integer overflow");
   }
 }
  
-0[:digit:]+              yyerror("Invalid base 8 number.");
+0[1-9]+              yyerror("Invalid base 8 number.");
 
-0|[1-9][:digit:]*         {
+0|[1-9][0-9]*    {
   try { 
-    yylval.i = std::stoul(yytext, NULL, 10); 
+    yylval.i = std::stoi(yytext, NULL, 10); 
     return tINTEGER;
   } catch (const std::out_of_range&) {
     yyerror("integer overflow");
@@ -146,9 +146,9 @@ EXP [eE]-?[:digit:]+
   /* ====[                 3.8.2 - Reais                              ]==== */
   /* ====================================================================== */
 
-[:digit:]*\.[:digit:]+{EXP}?    { yylval.d = std::stod(yytext); return tDOUBLE; }
-[:digit:]+\.[:digit:]*{EXP}?    { yylval.d = std::stod(yytext); return tDOUBLE; }
-[:digit:]+{EXP}                 { yylval.d = std::stod(yytext); return tDOUBLE; }
+[0-9]*\.[0-9]+{EXP}?    { yylval.d = std::stod(yytext); return tDOUBLE; }
+[0-9]+\.[0-9]*{EXP}?    { yylval.d = std::stod(yytext); return tDOUBLE; }
+[0-9]+{EXP}                 { yylval.d = std::stod(yytext); return tDOUBLE; }
 
   /* ====================================================================== */
   /* ====[                 3.8.1 - Strings                            ]==== */
@@ -174,7 +174,7 @@ EXP [eE]-?[:digit:]+
 <X_BACKSLASH>\\                strliteral << '\\'; yy_pop_state();
 
 <X_BACKSLASH>[0-7]{1,3}        {
-                                 unsigned long res = std::stoul(yytext, NULL, 8);
+                                 unsigned long res = std::stoi(yytext, NULL, 8);
                                  if (res > 255) {
                                   yyerror("Invalid 8 bit number.");
                                  }

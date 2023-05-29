@@ -1,6 +1,7 @@
 #include "targets/xml_writer.h"
 #include ".auto/all_nodes.h" // automatically generated
 #include "targets/type_checker.h"
+#include <sstream>
 #include <string>
 
 #include "mml_parser.tab.h"
@@ -8,12 +9,12 @@
 static std::string qualifier_name(int qualifier) {
   if (qualifier == tPUBLIC)
     return "public";
+  if (qualifier == tPRIVATE)
+    return "private";
   if (qualifier == tFOREIGN)
     return "foreign";
   if (qualifier == tFORWARD)
     return "forward";
-  if (qualifier == tAUTO)
-    return "auto";
   else
     return "unknown qualifier";
 }
@@ -45,13 +46,15 @@ void mml::xml_writer::do_block_node(mml::block_node *const node, int lvl) {
 void mml::xml_writer::do_function_definition_node(
     mml::function_definition_node *const node, int lvl) {
 
-  os() << std::string(lvl, ' ') << "<" << node->label()
-       << "; isMain= " << node->isMain() << "'>" << std::endl;
+  os() << std::string(lvl, ' ') << "<" << node->label() << " isMain= '"
+       << node->isMain() << "'>" << std::endl;
+
   openTag("arguments", lvl + 2);
   if (node->arguments()) {
     node->arguments()->accept(this, lvl + 4);
   }
   closeTag("arguments", lvl + 2);
+
   node->block()->accept(this, lvl + 2);
   closeTag(node, lvl);
 }
@@ -60,14 +63,14 @@ void mml::xml_writer::do_function_call_node(mml::function_call_node *const node,
                                             int lvl) {
 
   openTag(node, lvl);
-  openTag("function pointer", lvl + 2);
+  openTag("function_pointer", lvl + 2);
   if (node->identifier())
     node->identifier()->accept(this, lvl + 4);
   else {
     os() << std::string(lvl + 4, ' ') << "<recursive>" << std::endl
          << std::string(lvl + 4, ' ') << "</recursive>" << std::endl;
   }
-  closeTag("function pointer", lvl + 2);
+  closeTag("function_pointer", lvl + 2);
 
   openTag("arguments", lvl + 2);
   if (node->arguments())
@@ -145,12 +148,11 @@ void mml::xml_writer::do_stop_node(mml::stop_node *const node, int lvl) {
 
 void mml::xml_writer::do_variable_declaration_node(
     mml::variable_declaration_node *const node, int lvl) {
-  reset_new_symbol();
+  // reset_new_symbol();
 
   os() << std::string(lvl, ' ') << "<" << node->label() << " name='"
        << node->identifier() << "' qualifier='"
-       << qualifier_name(node->qualifier()) << "' type='"
-       << cdk::to_string(node->type()) << "'>" << std::endl;
+       << qualifier_name(node->qualifier()) << "'>" << std::endl;
 
   if (node->initializer()) {
     openTag("initializer", lvl);
@@ -289,7 +291,7 @@ void mml::xml_writer::do_assignment_node(cdk::assignment_node *const node,
   openTag(node, lvl);
 
   node->lvalue()->accept(this, lvl);
-  reset_new_symbol();
+  // reset_new_symbol();
 
   node->rvalue()->accept(this, lvl + 4);
   closeTag(node, lvl);

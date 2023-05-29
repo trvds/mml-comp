@@ -67,13 +67,13 @@
 
 %type <node> instruction if_instr elif_instr while_instr
 %type <decl> declaration var global_decl
-%type <sequence> file declarations instructions opt_exprs exprs opt_vars vars global_decls opt_global_decls
+%type <sequence> file declarations instructions opt_exprs exprs opt_vars vars global_decls
 %type <expression> expr integer real opt_expr_assig expr_assignment
 %type <lvalue> lval 
 %type <block> block innerblock
 %type <vartype> type function_type return_type
 %type <types> types
-%type <fndef> fundef mainfundef opt_mainfundef
+%type <fndef> fundef mainfundef
 %type <s> string
 
 %{
@@ -81,11 +81,10 @@
 %}
 %%
 
-file                : opt_global_decls opt_mainfundef { if ($2 != nullptr) $$ = new cdk::sequence_node(LINE, $2, $1); else $$ = $1;}
-                    ;
-
-opt_global_decls    : /* empty */             { $$ = new cdk::sequence_node(LINE); }
-                    | global_decls            { $$ = $1; }
+file                : /* empty */                  { compiler->ast($$ = new cdk::sequence_node(LINE)); }
+                    | global_decls                 { compiler->ast($$ = $1); }
+                    | mainfundef                   { compiler->ast($$ = new cdk::sequence_node(LINE, $1)); }
+                    | global_decls mainfundef      { compiler->ast($$ = new cdk::sequence_node(LINE, $2, $1)); }
                     ;
 
 global_decls        : global_decl                { $$ = new cdk::sequence_node(LINE, $1); }
@@ -99,10 +98,6 @@ global_decl         : tPUBLIC type tIDENTIFIER opt_expr_assig   { $$ = new mml::
                     | tPUBLIC tIDENTIFIER expr_assignment       { $$ = new mml::variable_declaration_node(LINE, tPUBLIC, nullptr, *$2, $3); delete $2; } 
                     | declaration                                { $$ = $1; }
                     ; 
-
-opt_mainfundef      : /* empty */ { $$ = nullptr; }
-                    | mainfundef { $$ = $1; }
-                    ;
 
 declarations        :  declaration                { $$ = new cdk::sequence_node(LINE, $1); }
                     |  declarations declaration   { $$ = new cdk::sequence_node(LINE, $2, $1); }
@@ -163,10 +158,10 @@ types               : type              { $$ = new std::vector<std::shared_ptr<c
 block               : '{' innerblock '}' { $$ = $2; }
                     ;
 
-innerblock          : instructions                { $$ = new mml::block_node(LINE, nullptr, $1); }
-                    | declarations                { $$ = new mml::block_node(LINE, $1, nullptr); }
+innerblock          : instructions                { $$ = new mml::block_node(LINE, new cdk::sequence_node(LINE), $1); }
+                    | declarations                { $$ = new mml::block_node(LINE, $1, new cdk::sequence_node(LINE)); }
                     | declarations instructions   { $$ = new mml::block_node(LINE, $1, $2); }
-                    | /* empty */                 { $$ = new mml::block_node(LINE, nullptr, nullptr); }
+                    | /* empty */                 { $$ = new mml::block_node(LINE, new cdk::sequence_node(LINE), new cdk::sequence_node(LINE)); }
                     ;
 
 instructions        : instruction                     { $$ = new cdk::sequence_node(LINE, $1); }

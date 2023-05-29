@@ -152,6 +152,8 @@ type                : tINT_TYPE         { $$ = cdk::primitive_type::create(4, cd
 
 function_type       : type '<' '>'                { $$ = cdk::functional_type::create($1); }
                     | type '<' types '>'          { $$ = cdk::functional_type::create(*$3, $1); delete $3; }
+                    | tVOID_TYPE '<' '>'          { $$ = cdk::functional_type::create(cdk::primitive_type::create(4, cdk::TYPE_VOID)); }
+                    | tVOID_TYPE '<' types '>'    { $$ = cdk::functional_type::create(*$3, cdk::primitive_type::create(4, cdk::TYPE_VOID)); delete $3; }
                     ;
 
 types               : type              { $$ = new std::vector<std::shared_ptr<cdk::basic_type>>(); $$->push_back($1); }

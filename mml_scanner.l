@@ -116,7 +116,7 @@ EXP [eE]-?[0-9]+
   /* ====[                 3.7 - Identificadores                     ]==== */
   /* ====================================================================== */
 
-[A-Za-z]([A-Za-z]|[[1-9]|"_"])*           yylval.s = new std::string(yytext); return tIDENTIFIER;
+[A-Za-z][A-Za-z0-9]*           yylval.s = new std::string(yytext); return tIDENTIFIER;
 
   /* ====================================================================== */
   /* ====[                 3.8.1 - Inteiros                           ]==== */

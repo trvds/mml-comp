@@ -191,9 +191,10 @@ EXP [eE]-?[0-9]+
                                 yy_pop_state(); yy_pop_state(); yy_pop_state();
                                 return tSTRING;
                               }
-<X_STRING_IGNORE>.|\\\"|\\\\       ;
+
 <X_STRING_IGNORE>\n           yyerror("newline in string");
 <X_STRING_IGNORE>\0           yyerror("NULL character in string");
+<X_STRING_IGNORE>.|\\\"|\\\\       ;
 
 [-()<>=+*/%;{}.]       return *yytext;
 

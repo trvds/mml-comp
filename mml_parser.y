@@ -53,16 +53,16 @@
 %nonassoc tIF tWHILE
 %nonassoc tELIF tELSE
 
-%nonassoc '(' '['
-%nonassoc tUNARY '?'
-%left '*' '/' '%'
-%left '+' '-'
-%left '<' tLE tGE '>'
-%left tNE tEQ
-%nonassoc tNOT
-%left tAND
-%left tOR
 %right '='
+%left tOR
+%left tAND
+%nonassoc tNOT
+%left tEQ tNE
+%left '<' '>' tLE tGE
+%left '+' '-'
+%left '*' '/' '%'
+%nonassoc tUNARY
+%nonassoc '(' '['
 
 
 %type <node> instruction if_instr elif_instr while_instr

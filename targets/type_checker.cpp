@@ -13,7 +13,10 @@
 
 void mml::type_checker::do_address_of_node(mml::address_of_node *const node,
                                            int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->argument()->accept(this, lvl + 2);
+  node->lvalue()->accept(this, lvl + 2);
+  node->type(cdk::reference_type::create(4, node->lvalue()->type()));
 }
 
 void mml::type_checker::do_block_node(mml::block_node *const node, int lvl) {
@@ -32,15 +35,12 @@ void mml::type_checker::do_function_call_node(
 
 void mml::type_checker::do_identity_node(mml::identity_node *const node,
                                          int lvl) {
-  // EMPTY
-}
-
-void mml::type_checker::do_index_node(mml::index_node *const node, int lvl) {
-  // EMPTY
-}
-
-void mml::type_checker::do_input_node(mml::input_node *const node, int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->argument()->accept(this, lvl + 2);
+  if (!(node->argument()->is_typed(cdk::TYPE_INT) || node->argument()->is_typed(cdk::TYPE_DOUBLE))) {
+  throw std::string("wrong type in argument of identity expression");
+  }
+  node->type(node->argument()->type());
 }
 
 void mml::type_checker::do_next_node(mml::next_node *const node, int lvl) {
@@ -49,7 +49,8 @@ void mml::type_checker::do_next_node(mml::next_node *const node, int lvl) {
 
 void mml::type_checker::do_nullptr_node(mml::nullptr_node *const node,
                                         int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->type(cdk::reference_type::create(4, nullptr));
 }
 
 void mml::type_checker::do_print_node(mml::print_node *const node, int lvl) {
@@ -82,8 +83,10 @@ void mml::type_checker::do_variable_declaration_node(
 
 void mml::type_checker::do_sequence_node(cdk::sequence_node *const node,
                                          int lvl) {
-  // EMPTY
+  for(size_t i = 0; i < node->size(); i++)
+    node->node(i)->accept(this, lvl); 
 }
+
 
 //---------------------------------------------------------------------------
 
@@ -94,13 +97,17 @@ void mml::type_checker::do_data_node(cdk::data_node *const node, int lvl) {
   // EMPTY
 }
 void mml::type_checker::do_double_node(cdk::double_node *const node, int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->type(cdk::primitive_type::create(8, cdk::TYPE_DOUBLE));
 }
 void mml::type_checker::do_not_node(cdk::not_node *const node, int lvl) {
-  // EMPTY
+  ASSERT_UNSPEC;
+  node->argument()->accept(this, lvl + 2);
+  if (!node->argument()->is_typed(cdk::TYPE_INT))
+    throw std::string("wrong type in argument of unary expression");
 }
 void mml::type_checker::do_and_node(cdk::and_node *const node, int lvl) {
-  // EMPTY
+
 }
 void mml::type_checker::do_or_node(cdk::or_node *const node, int lvl) {
   // EMPTY

@@ -23,16 +23,11 @@ EXP [eE]-?[0-9]+
 %%
   yydebug=1; set_debug(1);
 
-"--".*                 ; /* ignore comments */
-
-
   /* ====================================================================== */
   /* ====[                 3.2 - Comentários                          ]==== */
   /* ====================================================================== */
 
-[ ]*"..."\n            ;         
-
-"//".*\n                { yyless(yyleng - 1); }
+"//".*                 ;
 
 "/*"                   yy_push_state(X_COMMENT);
 <X_COMMENT>"/*"        yy_push_state(X_COMMENT);
@@ -146,9 +141,30 @@ EXP [eE]-?[0-9]+
   /* ====[                 3.8.2 - Reais                              ]==== */
   /* ====================================================================== */
 
-[0-9]*\.[0-9]+{EXP}?    { yylval.d = std::stod(yytext); return tDOUBLE; }
-[0-9]+\.[0-9]*{EXP}?    { yylval.d = std::stod(yytext); return tDOUBLE; }
-[0-9]+{EXP}                 { yylval.d = std::stod(yytext); return tDOUBLE; }
+[0-9]*\.[0-9]+{EXP}?    { 
+  try { 
+    yylval.d = std::stod(yytext); 
+    return tDOUBLE; 
+  } catch (const std::out_of_range&) {
+    yyerror("double overflow");
+  }
+}
+[0-9]+\.[0-9]*{EXP}?    { 
+  try { 
+    yylval.d = std::stod(yytext); 
+    return tDOUBLE; 
+  } catch (const std::out_of_range&) {
+    yyerror("double overflow");
+  }
+}
+[0-9]+{EXP}              { 
+  try { 
+    yylval.d = std::stod(yytext); 
+    return tDOUBLE; 
+  } catch (const std::out_of_range&) {
+    yyerror("double overflow");
+  }
+}
 
   /* ====================================================================== */
   /* ====[                 3.8.1 - Strings                            ]==== */

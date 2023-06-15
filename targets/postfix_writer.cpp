@@ -40,7 +40,6 @@ void mml::postfix_writer::do_integer_node(cdk::integer_node *const node, int lvl
 
 void mml::postfix_writer::do_double_node(cdk::double_node *const node, int lvl) {
   std::string lbl = mklbl(++_lbl);
-  // TODO: change for new cdk
   if (_function) {
     _pf.DOUBLE(node->value());
   } else {

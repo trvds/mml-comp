@@ -42,17 +42,7 @@ void mml::postfix_writer::do_double_node(cdk::double_node *const node, int lvl) 
   std::string lbl = mklbl(++_lbl);
   // TODO: change for new cdk
   if (_function) {
-    _pf.CALL(lbl);
-    _pf.TEXT();
-    _pf.ALIGN();
-    _pf.LABEL(lbl);
-    _pf.START();
     _pf.DOUBLE(node->value());
-    _pf.STFVAL64();
-    _pf.LEAVE();
-    _pf.RET();
-    _pf.TEXT(_return_lbls.back());
-    _pf.LDFVAL64();
   } else {
     _pf.SDOUBLE(node->value());
   }
@@ -795,7 +785,7 @@ void mml::postfix_writer::do_variable_declaration_node(mml::variable_declaration
     _declare_symbols.insert(symbol->name());
   }
 
-    if (node->initializer()) {
+  if (node->initializer()) {
     auto init_node = node->initializer();
     if (_function) {
       init_node->accept(this, lvl);

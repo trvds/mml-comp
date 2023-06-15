@@ -2,9 +2,15 @@
 #define __MML_TARGETS_POSTFIX_WRITER_H__
 
 #include "targets/basic_ast_visitor.h"
-
+#include "targets/symbol.h"
 #include <cdk/emitters/basic_postfix_emitter.h>
+#include <cdk/symbol_table.h>
+#include <cdk/types/functional_type.h>
+
+#include <set>
 #include <sstream>
+#include <stack>
+#include <vector>
 
 namespace mml {
 
@@ -16,14 +22,27 @@ namespace mml {
     cdk::basic_postfix_emitter &_pf;
     int _lbl;
 
+    int _offset = 0;
+    bool _function = false;
+    bool _function_args = false;
+    std::string _function_lbl;
+    std::string _external_lbl;
+    std::stack<int> _while_cond, _while_end;
+    std::set<std::string> _external_funcs;
+    std::set<std::string> _declare_symbols;
+    std::vector<std::string> _return_lbls;
+    std::vector<std::shared_ptr<mml::symbol>> _function_symbols;
+
   public:
-    postfix_writer(std::shared_ptr<cdk::compiler> compiler,
-                   cdk::symbol_table<mml::symbol> &symtab,
+    postfix_writer(std::shared_ptr<cdk::compiler> compiler, cdk::symbol_table<mml::symbol> &symtab,
                    cdk::basic_postfix_emitter &pf)
         : basic_ast_visitor(compiler), _symtab(symtab), _pf(pf), _lbl(0) {}
 
   public:
     ~postfix_writer() { os().flush(); }
+
+  protected:
+    void do_initializer(cdk::expression_node *const node, int lvl, std::shared_ptr<mml::symbol> const symbol);
 
   private:
     /** Method used to generate sequential labels. */

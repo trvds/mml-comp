@@ -14,8 +14,7 @@ namespace mml {
     basic_ast_visitor *_parent;
 
   public:
-    type_checker(std::shared_ptr<cdk::compiler> compiler,
-                 cdk::symbol_table<mml::symbol> &symtab,
+    type_checker(std::shared_ptr<cdk::compiler> compiler, cdk::symbol_table<mml::symbol> &symtab,
                  basic_ast_visitor *parent)
         : basic_ast_visitor(compiler), _symtab(symtab), _parent(parent) {}
 
@@ -23,11 +22,9 @@ namespace mml {
     ~type_checker() { os().flush(); }
 
   protected:
-    void processUnaryExpression(cdk::unary_operation_node *const node, int lvl);
-    void processBinaryExpression(cdk::binary_operation_node *const node,
-                                 int lvl);
-    template <typename T>
-    void process_literal(cdk::literal_node<T> *const node, int lvl) {}
+    void process_expr(cdk::binary_operation_node *const node, bool process_pointers, int lvl);
+    void check_operand_type(cdk::binary_operation_node *const node, int lvl, std::vector<cdk::typename_type> valid_types);
+    void check_same_type(cdk::binary_operation_node *const node, int lvl);
 
   public:
     // do not edit these lines
@@ -43,15 +40,15 @@ namespace mml {
 //     HELPER MACRO FOR TYPE CHECKING
 //---------------------------------------------------------------------------
 
-#define CHECK_TYPES(compiler, symtab, node)                                    \
-  {                                                                            \
-    try {                                                                      \
-      mml::type_checker checker(compiler, symtab, this);                       \
-      (node)->accept(&checker, 0);                                             \
-    } catch (const std::string &problem) {                                     \
-      std::cerr << (node)->lineno() << ": " << problem << std::endl;           \
-      return;                                                                  \
-    }                                                                          \
+#define CHECK_TYPES(compiler, symtab, node)                                                                            \
+  {                                                                                                                    \
+    try {                                                                                                              \
+      mml::type_checker checker(compiler, symtab, this);                                                               \
+      (node)->accept(&checker, 0);                                                                                     \
+    } catch (const std::string &problem) {                                                                             \
+      std::cerr << (node)->lineno() << ": " << problem << std::endl;                                                   \
+      return;                                                                                                          \
+    }                                                                                                                  \
   }
 
 #define ASSERT_SAFE_EXPRESSIONS CHECK_TYPES(_compiler, _symtab, node)

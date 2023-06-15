@@ -65,10 +65,10 @@
 %nonassoc '(' '['
 
 
-%type <node> instruction if_instr elif_instr while_instr
+%type <node> instruction if_instr elif_instr while_instr final_instr block_instr
 %type <decl> declaration var global_decl
 %type <sequence> file declarations instructions opt_exprs exprs opt_vars vars global_decls
-%type <expression> expr integer real opt_expr_assig expr_assignment
+%type <expression> expr integer real opt_expr_assig expr_assignment global_opt_expr_assig global_expr_assig literals
 %type <lvalue> lval 
 %type <block> block innerblock
 %type <vartype> type function_type return_type
@@ -91,13 +91,22 @@ global_decls        : global_decl                { $$ = new cdk::sequence_node(L
                     | global_decls global_decl    { $$ = new cdk::sequence_node(LINE, $2, $1); }
                     ;
 
-global_decl         : tPUBLIC type tIDENTIFIER opt_expr_assig   { $$ = new mml::variable_declaration_node(LINE, tPUBLIC, $2, *$3, $4); delete $3; }
-                    | tFORWARD type tIDENTIFIER ';'              { $$ = new mml::variable_declaration_node(LINE, tFORWARD, $2, *$3, nullptr); delete $3; }
-                    | tFOREIGN type tIDENTIFIER ';'              { $$ = new mml::variable_declaration_node(LINE, tFOREIGN, $2, *$3, nullptr); delete $3; }
-                    | tPUBLIC tAUTO tIDENTIFIER expr_assignment         { $$ = new mml::variable_declaration_node(LINE, tPUBLIC, nullptr, *$3, $4); delete $3; }
-                    | tPUBLIC tIDENTIFIER expr_assignment       { $$ = new mml::variable_declaration_node(LINE, tPUBLIC, nullptr, *$2, $3); delete $2; } 
-                    | declaration                                { $$ = $1; }
-                    ; 
+global_decl         : tPUBLIC type tIDENTIFIER global_opt_expr_assig  { $$ = new mml::variable_declaration_node(LINE, tPUBLIC, $2, *$3, $4); delete $3; }
+                    | tFORWARD type tIDENTIFIER ';'                   { $$ = new mml::variable_declaration_node(LINE, tFORWARD, $2, *$3, nullptr); delete $3; }
+                    | tFOREIGN type tIDENTIFIER ';'                   { $$ = new mml::variable_declaration_node(LINE, tFOREIGN, $2, *$3, nullptr); delete $3; }
+                    | tPUBLIC tAUTO tIDENTIFIER global_expr_assig     { $$ = new mml::variable_declaration_node(LINE, tPUBLIC, nullptr, *$3, $4); delete $3; }
+                    | tPUBLIC tIDENTIFIER global_expr_assig           { $$ = new mml::variable_declaration_node(LINE, tPUBLIC, nullptr, *$2, $3); delete $2; } 
+                    | type tIDENTIFIER global_opt_expr_assig       { $$ = new mml::variable_declaration_node(LINE, tPRIVATE, $1, *$2, $3); delete $2; }
+                    | tAUTO tIDENTIFIER global_expr_assig     { $$ = new mml::variable_declaration_node(LINE, tPRIVATE, nullptr, *$2, $3); delete $2; }
+                    ;
+
+global_opt_expr_assig : ';'               { $$ = nullptr; }
+                      | global_expr_assig { $$ = $1; }
+                      ;
+
+global_expr_assig   : '=' literals ';'     { $$ = $2; }
+                    | '=' fundef   ';'     { $$ = $2; }
+                    ;
 
 declarations        :  declaration                { $$ = new cdk::sequence_node(LINE, $1); }
                     |  declarations declaration   { $$ = new cdk::sequence_node(LINE, $2, $1); }
@@ -164,22 +173,30 @@ innerblock          : instructions                { $$ = new mml::block_node(LIN
                     | /* empty */                 { $$ = new mml::block_node(LINE, new cdk::sequence_node(LINE), new cdk::sequence_node(LINE)); }
                     ;
 
-instructions        : instruction                     { $$ = new cdk::sequence_node(LINE, $1); }
-                    | instruction instructions        { std::reverse($2->nodes().begin(), $2->nodes().end()); $$ = new cdk::sequence_node(LINE, $1, $2); std::reverse($$->nodes().begin(), $$->nodes().end()); }
+instructions        : block_instr                     { $$ = new cdk::sequence_node(LINE, $1); }
+                    | block_instr instructions        { std::reverse($2->nodes().begin(), $2->nodes().end()); $$ = new cdk::sequence_node(LINE, $1, $2); std::reverse($$->nodes().begin(), $$->nodes().end()); }
+                    | final_instr                     { $$ = new cdk::sequence_node(LINE, $1); }
                     ;
 
-instruction         :  expr ';'                       { $$ = new mml::evaluation_node(LINE, $1); }
-                    |  exprs tPRINT                   { $$ = new mml::print_node(LINE, $1); }
-                    |  exprs tPRINTLN                 { $$ = new mml::print_node(LINE, $1, true); }  
-                    |  tNEXT ';'                      { $$ = new mml::next_node(LINE); }
+
+final_instr         :  tNEXT ';'                      { $$ = new mml::next_node(LINE); }
                     |  tNEXT tINTEGER ';'             { $$ = new mml::next_node(LINE, $2); }
                     |  tSTOP ';'                      { $$ = new mml::stop_node(LINE); }
                     |  tSTOP tINTEGER ';'             { $$ = new mml::stop_node(LINE, $2); }
                     |  tRETURN ';'                    { $$ = new mml::return_node(LINE); }
                     |  tRETURN expr ';'               { $$ = new mml::return_node(LINE, $2); }
+                    ;
+
+block_instr         :  expr ';'                       { $$ = new mml::evaluation_node(LINE, $1); }
+                    |  exprs tPRINT                   { $$ = new mml::print_node(LINE, $1); }
+                    |  exprs tPRINTLN                 { $$ = new mml::print_node(LINE, $1, true); }  
                     |  if_instr                       { $$ = $1; }
                     |  while_instr                    { $$ = $1; }
                     |  block                          { $$ = $1; }   
+                    ;
+
+instruction         :  block_instr                    { $$ = $1; }
+                    |  final_instr                    { $$ = $1; }
                     ;
 
 if_instr            : tIF '(' expr ')' instruction %prec tIFX { $$ = new mml::if_node(LINE, $3, $5); }
@@ -194,10 +211,7 @@ elif_instr          : tELSE instruction                         { $$ = $2; }
 while_instr         : tWHILE '(' expr ')' instruction { $$ = new mml::while_node(LINE, $3, $5); }
                     ;
                
-expr                : integer                     { $$ = $1; } // literais 
-                    | real                        { $$ = $1; } 
-	                  | string                      { $$ = new cdk::string_node(LINE, $1); } 
-                    | tNULLPTR                    { $$ = new mml::nullptr_node(LINE); } 
+expr                : literals                    { $$ = $1; } // literais
                     | '+' expr %prec tUNARY       { $$ = new mml::identity_node(LINE, $2); } // primárias
                     | '-' expr %prec tUNARY       { $$ = new cdk::neg_node(LINE, $2); } 
                     | expr '*' expr               { $$ = new cdk::mul_node(LINE, $1, $3); } // multiplicativas
@@ -224,6 +238,12 @@ expr                : integer                     { $$ = $1; } // literais
                     | expr  '(' opt_exprs ')'     { $$ = new mml::function_call_node(LINE, $1, $3); } // invocação de função
                     | '@' '(' opt_exprs ')'       { $$ = new mml::function_call_node(LINE, nullptr, $3); } // invocação de função recursiva
                     | tSIZEOF '(' expr ')'        { $$ = new mml::sizeof_node(LINE, $3); } // dimensão
+                    ;
+
+literals            : integer                     { $$ = $1; }
+                    | real                        { $$ = $1; }
+                    | string                      { $$ = new cdk::string_node(LINE, $1); }
+                    | tNULLPTR                    { $$ = new mml::nullptr_node(LINE); }
                     ;
 
 opt_exprs           :  /* empty */ { $$ = new cdk::sequence_node(LINE); }
